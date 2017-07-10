@@ -80,26 +80,32 @@ class Model(object):
         self.closed_sheets=pd.DataFrame(columns=['Width','Height','x','y','lx','ly','items','checked_item'])
         while items_not_stored > 0:
             n_fail=0
-            while items_not_stored>0 and n_fail<20 :
-                items_pd = self.items.copy()
-                items_pd = items_pd[~items_pd['id'].isin(items_to_delete)]
-                for index_sheets, sheet in self.sheets.iterrows():
-                    for index_items, item in items_pd.iterrows():      
-                        
-                        if item['Width'] <= sheet['Width'] and item['Height'] <= sheet['Height']:
-                            items_not_stored = items_not_stored - 1
-                            items_to_delete.append(item['id'])
+            from_left_right=1
+            items_pd = self.items.copy()
+            items_pd = items_pd[~items_pd['id'].isin(items_to_delete)]
+            for index_sheets, sheet in self.sheets.iterrows():
+                for index_items, item in items_pd.iterrows():
+                    if item['Width'] <= sheet['Width'] and item['Height'] <= sheet['Height']:
+                        items_not_stored = items_not_stored - 1
+                        items_to_delete.append(item['id'])
+                        if from_left_right==1:
                             self.items['x'][index_items] = sheet['x']
                             self.items['y'][index_items] = sheet['y']
                             self.items['sheet'][index_items] = index_sheets
                             self.sheets['Width'][index_sheets]= sheet['Width'] - item ['Width']
                             self.sheets['x'][index_sheets]= sheet['x'] + item['Width']
                             self.sheets['items'][index_sheets].append(item['id'])
+                        else:
+                            self.items['x'][index_items] = self.W-item ['Width']
+                            self.items['y'][index_items] = sheet['y']
+                            self.items['sheet'][index_items] = index_sheets
+                            self.sheets['Width'][index_sheets]= sheet['Width'] - item ['Width']
+                            #self.sheets['x'][index_sheets]= sheet['x'] - item['Width']
+                            self.sheets['items'][index_sheets].append(item['id'])                               
                     #print(~items_pd['id'].isin(items_to_delete))
-                    items_pd = items_pd[~items_pd['id'].isin(items_to_delete)]
-                
-                #print(self.items)
-                #print(self.sheets)
+                items_pd = items_pd[~items_pd['id'].isin(items_to_delete)]
+            while items_not_stored>0 and n_fail<20:
+
                 for index_sheets, sheet in self.sheets.iterrows():
                     pd_temp=self.items[self.items['id'].isin(self.sheets['items'][index_sheets])]
                     pd_temp['total_height']=pd_temp['y']+pd_temp['Height']
@@ -120,10 +126,14 @@ class Model(object):
                                 self.sheets['lx'][index_sheets]=0
                                 self.sheets['Width'][index_sheets]=0
                             else:
-                                self.sheets['lx'][index_sheets]=0
-                                self.sheets['x'][index_sheets]=0
-                                self.sheets['Width'][index_sheets]=self.W
-                            
+                                if from_left_right==1:
+                                    self.sheets['lx'][index_sheets]=0
+                                    self.sheets['x'][index_sheets]=0
+                                    self.sheets['Width'][index_sheets]=self.W
+                                else:
+                                    self.sheets['lx'][index_sheets]=pd_temp['Width'][pd_temp['id']==item_id].values[0]
+                                    self.sheets['x'][index_sheets]=self.sheets['x'][index_sheets]-lx
+                                    self.sheets['Width'][index_sheets]=self.sheets['Width'][index_sheets]+lx
                         
                     elif pd_temp.shape[0] > 0:
                         ly=min(pd_temp['total_height'])
@@ -135,19 +145,47 @@ class Model(object):
                             self.sheets=self.sheets.drop([index_sheets])
                             
                         else:
-                            self.sheets['ly'][index_sheets]=ly
-                            self.sheets['lx'][index_sheets]=lx
-                            self.sheets['x'][index_sheets]=self.sheets['x'][index_sheets]-lx
-                            self.sheets['y'][index_sheets]=self.sheets['ly'][index_sheets]
-                            self.sheets['Width'][index_sheets]=self.sheets['Width'][index_sheets]+lx
-                            self.sheets['Height'][index_sheets]=self.H-self.sheets['y'][index_sheets]
+                            if from_left_right==-1:
+                                self.sheets['ly'][index_sheets]=ly
+                                self.sheets['lx'][index_sheets]=lx
+                                self.sheets['x'][index_sheets]=self.sheets['x'][index_sheets]-lx
+                                self.sheets['y'][index_sheets]=self.sheets['ly'][index_sheets]
+                                self.sheets['Width'][index_sheets]=self.sheets['Width'][index_sheets]+lx
+                                self.sheets['Height'][index_sheets]=self.H-self.sheets['y'][index_sheets]
+                            else:
+                                self.sheets['ly'][index_sheets]=ly
+                                self.sheets['lx'][index_sheets]=lx
+                                self.sheets['x'][index_sheets]=self.sheets['x'][index_sheets]-lx
+                                self.sheets['y'][index_sheets]=self.sheets['ly'][index_sheets]
+                                self.sheets['Width'][index_sheets]=self.sheets['Width'][index_sheets]+lx
+                                self.sheets['Height'][index_sheets]=self.H-self.sheets['y'][index_sheets]
+                    
+                items_pd = self.items.copy()
+                items_pd = items_pd[~items_pd['id'].isin(items_to_delete)]
+                for index_sheets, sheet in self.sheets.iterrows():
+                    for index_items, item in items_pd.iterrows():      
+                        if item['Width'] <= sheet['Width'] and item['Height'] <= sheet['Height']:
+                            items_not_stored = items_not_stored - 1
+                            items_to_delete.append(item['id'])
+                            if from_left_right==1:
+                                self.items['x'][index_items] = sheet['x']
+                                self.items['y'][index_items] = sheet['y']
+                                self.items['sheet'][index_items] = index_sheets
+                                self.sheets['Width'][index_sheets]= sheet['Width'] - item ['Width']
+                                self.sheets['x'][index_sheets]= sheet['x'] + item['Width']
+                                self.sheets['items'][index_sheets].append(item['id'])
+                            else:
+                                self.items['x'][index_items] = self.W-item ['Width']
+                                self.items['y'][index_items] = sheet['y']
+                                self.items['sheet'][index_items] = index_sheets
+                                self.sheets['Width'][index_sheets]= sheet['Width'] - item ['Width']
+                                #self.sheets['x'][index_sheets]= sheet['x'] - item['Width']
+                                self.sheets['items'][index_sheets].append(item['id'])                               
+                    
+                    items_pd = items_pd[~items_pd['id'].isin(items_to_delete)]
+                from_left_right=from_left_right*-1
                 n_fail=n_fail+1
-                #print('fails',n_fail)
-                #print('items left',items_not_stored)
-                #print(self.items)
-                #print(self.sheets)
-                #input("Press Enter to continue...")
-            #print(items_not_stored)
+
             if items_not_stored != 0 :
                     self.add_sheet(n_used_sheets)
                     n_used_sheets=n_used_sheets+1
