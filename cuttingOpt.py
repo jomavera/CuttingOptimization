@@ -7,7 +7,7 @@ Created on Sat Jul  8 20:04:31 2017
 """
 import pandas as pd
 import numpy as np
-import time
+import turtle as ttl 
 
 class Model(object):
     
@@ -56,11 +56,12 @@ class Model(object):
         element_new=element_pd.set_index(keys='index')
         self.items=self.items.append(element_new)
         
-    def add_sheet(self,n):
+    def add_sheet(self):
         
-        sheet_pd=pd.DataFrame([[self.W,self.H,0,self.W,0,[],[],n+1]],columns=['Free_Width','Free_Height','lx','rx','y','items','checked_item','index'])
+        sheet_pd=pd.DataFrame([[self.W,self.H,0,self.W,0,[],[],self.n_sheets+1]],columns=['Free_Width','Free_Height','lx','rx','y','items','checked_item','index'])
         sheet_new=sheet_pd.set_index(keys='index')
         self.sheets=self.sheets.append(sheet_new)
+        self.n_sheets=self.n_sheets+1
         
     def sort_items(self):
         #self.items['WidthxHeight']=self.items['Width']*self.items['Height']
@@ -69,6 +70,50 @@ class Model(object):
     def compute_lb(self):
         self.items['WidthxHeight']=self.items['Width']*self.items['Height']
         return round(self.items['WidthxHeight'].sum()/(self.W*self.H),0)
+    
+    
+    def draw_solution(self):
+        i=0
+        pendict=dict()
+        pendict['shown']=False
+        pendict['speed']=10
+        ttl.pen(pen=pendict)
+        for x in range(1,int(self.n_sheets+1)):
+            ttl.penup()
+            ttl.setpos(-100+i*self.W*15,-100)
+            ttl.pendown()
+            ttl.setheading(0)
+            ttl.forward(self.W*10)
+            ttl.left(90)
+            ttl.forward(self.H*10)
+            ttl.left(90)
+            ttl.forward(self.W*10)
+            ttl.left(90)
+            ttl.forward(self.H*10)
+            items=self.items[self.items['sheet']==x]
+            for index, item in items.iterrows():
+                ttl.penup()
+                ttl.setpos(-100+item['x']*10+i*self.W*15,-100+item['y']*10)
+                ttl.pendown()
+                ttl.color("black", "red")
+                ttl.begin_fill()
+                ttl.setheading(0)
+                ttl.forward(item['Width']*10)
+                ttl.left(90)
+                ttl.forward(item['Height']*10)
+                ttl.left(90)
+                ttl.forward(item['Width']*10)
+                ttl.left(90)
+                ttl.forward(item['Height']*10)
+                ttl.end_fill()
+            i=i+1
+        ttl.done()
+        
+
+                
+
+            
+    
     
     def find_minsheets(self):
         self.sort_items()
@@ -199,7 +244,7 @@ class Model(object):
                 n_fail=n_fail+1
 
             if items_not_stored != 0 :
-                    self.add_sheet(n_used_sheets)
+                    self.add_sheet()
                     n_used_sheets=n_used_sheets+1
 
         return n_used_sheets        
