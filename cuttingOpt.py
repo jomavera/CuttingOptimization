@@ -201,7 +201,6 @@ class Model(object):
             if items_not_stored != 0 :
                     self.add_sheet(n_used_sheets)
                     n_used_sheets=n_used_sheets+1
-            print(self.sheets.shape[0])
 
         return n_used_sheets        
     
