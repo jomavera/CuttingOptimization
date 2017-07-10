@@ -78,6 +78,7 @@ class Model(object):
         pendict['shown']=False
         pendict['speed']=10
         ttl.pen(pen=pendict)
+        ttl.setup( width = 700, height = 250, startx = None, starty = None)
         for x in range(1,int(self.n_sheets+1)):
             ttl.penup()
             ttl.setpos(-100+i*self.W*15,-100)
