@@ -56,10 +56,11 @@ class Model(object):
         element_new=element_pd.set_index(keys='index')
         self.items=self.items.append(element_new)
         
-    def add_sheet(self):
+    def add_sheet(self,n):
         
-        sheet_pd=pd.DataFrame([[self.W,self.H,0,0,0,0,[],[]]],columns=['Width','Height','x','y','lx','ly','items','checked_item'])
-        self.sheets=self.sheets.append(sheet_pd)
+        sheet_pd=pd.DataFrame([[self.W,self.H,0,0,0,0,[],[],n+1]],columns=['Width','Height','x','y','lx','ly','items','checked_item','index'])
+        sheet_new=sheet_pd.set_index(keys='index')
+        self.sheets=self.sheets.append(sheet_new)
         
     def sort_items(self):
         #self.items['WidthxHeight']=self.items['Width']*self.items['Height']
@@ -143,12 +144,12 @@ class Model(object):
                 n_fail=n_fail+1
                 #print('fails',n_fail)
                 #print('items left',items_not_stored)
-                print(self.items)
-                print(self.sheets)
-                input("Press Enter to continue...")
+                #print(self.items)
+                #print(self.sheets)
+                #input("Press Enter to continue...")
             #print(items_not_stored)
             if items_not_stored != 0 :
-                    self.add_sheet()
+                    self.add_sheet(n_used_sheets)
                     n_used_sheets=n_used_sheets+1
             print(self.sheets.shape[0])
 
